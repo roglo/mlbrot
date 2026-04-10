@@ -1140,6 +1140,13 @@ value action_mandel wid ev =
   | None -> () ]
 ;
 
+Rt.button_font.val := "-*-terminus-bold-r-*-18-*";
+Rt.title_font.val := "-*-terminus-bold-r-*-18-*";
+Rt.term_font.(0) := "-*-terminus-bold-r-*-18-*";
+Rt.term_font.(1) := "-*-terminus-bold-r-*-18-*";
+Rt.term_font.(2) := "-*-terminus-medium-o-*-18-*";
+Rt.term_font.(3) := "-*-terminus-bold-r-*-18-*";
+
 value x_init init_pos init_wid init_hei c_pal_def c_pal = do {
   let xd = rt_initialize "" in
   rt_select_char_set xd Utf_8;
