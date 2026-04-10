@@ -1,0 +1,55 @@
+
+type num_type = [ N_int | N_i64 | N_flo | N_big | N_mpz ];
+
+type serialized = { s_prec : int; s_value : string };
+
+type environ =
+  { e_level : int;
+    e_formula : int;
+    e_lambda : bool;
+    e_num_type : num_type;
+    e_rot : Int10.t;
+    e_reduc : serialized;
+    e_xc : serialized;
+    e_yc : serialized;
+    e_nb_it : int;
+    e_w : int;
+    e_h : int;
+    e_invert : bool;
+    e_julia : option (serialized * serialized);
+    e_with_mpfr : bool }
+;
+
+type request 'float =
+  [ Set_environ of environ
+  | Set_nb_it of int
+  | Compute_values of array (question 'float) ]
+and question 'float =
+  { q_i : int;
+    q_j : int;
+    q_start : option ('float * 'float);
+    q_di : int;
+    q_len : int }
+;
+
+type result 'float =
+  [ Result of int
+  | LimitReached of 'float and 'float and int ]
+;
+
+type answer 'float =
+  [ Answ_set_name of string
+  | Answ_values of array (result 'float) ]
+;
+
+type function_context 'float =
+  { f_w : int;
+    f_h : int;
+    f_rot : option ('float * 'float);
+    f_reduc : 'float;
+    f_xc : 'float;
+    f_yc : 'float;
+    f_nb_it : int;
+    f_invert : bool;
+    f_julia : option ('float * 'float) }
+;

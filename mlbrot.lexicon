@@ -1,0 +1,223 @@
+# $Id: mlbrot.lexicon,v 1.31 2014/01/25 17:34:13 deraugla Exp $
+
+    Black & White
+en: Black & White
+fr: Noir & Blanc
+
+    Brightness
+en: Brightness
+fr: Brillance
+
+    Colours
+en: Colors
+fr: Couleurs
+
+    Decrease
+en: Decrease
+fr: Diminue
+
+    Display
+en: Display
+fr: Affichage
+
+    Erase Info
+en: Erase Info
+fr: Effacer info
+
+    faster
+en: faster
+fr: plus rapide
+
+    File
+en: File
+fr: Fichier
+
+    Grey
+en: Gray
+fr: Gris
+
+    History
+en: History
+fr: Historique
+
+    Increase
+en: Increase
+fr: Augmente
+
+# epithet adjective: @(b) if applied to brightness. @(s) to saturation
+    Initial
+en: Initial
+fr: Initial@(b?e:s?e)
+
+    Iterations
+en: Iterations
+fr: Itérations
+
+    Lazy Master
+en: Lazy Master
+fr: Maître paresseux
+
+    less black
+en: less black
+fr: moins de noir
+
+    Next
+en: Next
+fr: Suivant@(p?e)
+
+    Pause/Resume
+en: Pause/Resume
+fr: Pause/Continue
+
+    Previous
+en: Previous
+fr: Précédent@(p?e)
+
+    Quit
+en: Quit
+fr: Quitter
+
+    Rainbow
+en: Rainbow
+fr: Arc-en-ciel
+
+    Random Interesting Point
+en: Random Interesting Point
+fr: Point intéressant aléatoire
+
+    Random Palette
+en: Random Palette
+fr: Palette aléatoire
+
+    Redraw
+en: Redraw
+fr: Réafficher
+
+    refining
+en: refining
+fr: raffinement
+
+    Reverse Rainbow
+en: Reverse Rainbow
+fr: Arc-en-ciel inversé
+
+    Rotate ↺
+en: Rotate ↺
+fr: Tourner ↺
+
+    Rotate ↺ 10°
+en: Rotate ↺ 10°
+fr: Tourner ↺ de 10°
+
+    Rotate ↻
+en: Rotate ↻
+fr: Tourner ↻
+
+    Rotate ↻ 10°
+en: Rotate ↻ 10°
+fr: Tourner ↻ de 10°
+
+    Shifted Rainbow
+en: Shifted Rainbow
+fr: Arc-en-ciel décalé
+
+    squares
+en: squares
+fr: carrés
+
+    Unzoom
+en: Unzoom
+fr: Dézoomer
+
+    Unzoom 10 times
+en: Unzoom 10 times
+fr: Dézoomer 10 fois
+
+    Use Mouse Buttons!
+en: Use Mouse Buttons!
+fr: Utilisez les boutons de la souris !
+
+    Very Random Palette
+en: Very Random Palette
+fr: Palette très aléatoire
+
+    Zoom
+en: Zoom
+fr: Zoomer
+
+    Zoom A Little
+en: Zoom A Little
+fr: Zoomer un petit peu
+
+    Zoom Area
+en: Zoom Area
+fr: Zone de zoom
+
+    Zoom 10 times
+en: Zoom 10 times
+fr: Zoomer 10 fois
+
+    ~help txt 1
+en: \n\
+    Zooming\n\
+      button 1: zoom centered at mouse position\n\
+      mouse button 2: center at mouse position\n\
+      mouse button 3: unzoom\n\
+      mouse wheel: rotate 1 degree; +shift: rotate 10 degrees\n\
+      z: zoom; Z: zoom ten times; x: unzoom; X: unzoom ten times\n\
+      s: zoom a little\n\
+      a: animate (loop zooming a little and outputing ppm)\n\
+      space: pause/resume\n\
+    Color palette\n\
+      r: change to random color palette; R very random\n\
+      left-arrow: previous color palette\n\
+      right-arrow: next color palette\n\
+      [ ] =: decrease/increase/medium saturation (ctrl: spreading)\n\
+      { } -: decrease/increase/medium brightness (ctrl: spreading)\n\
+      ( ): colors permutation (ctrl: fast)\n\
+    Iterations\n\
+      d: decrease number of iterations (faster)\n\
+      u: increase number of iterations (less black)\n\
+    Information\n\
+      .: draw half sized rectangle around center\n\
+      c: display color palette\n\
+      i: display interesting points in white\n\
+      /: erase information\n\
+      shift + mouse button 1: draw iteration points\n\
+    Computations\n\
+      1: computations with integers\n\
+      2: computations with integers 64 bits\n\
+      3: computations with floats (default)\n\
+      4: computations with big integers (bignum)
+fr: \n\
+    Zoom\n\
+      bouton souris 1 : zoom centré à la position de la souris\n\
+      bouton souris 2 : centrer sur la position de la souris (sans zoom)\n\
+      bouton souris 3 : dézoomer\n\
+      molette : tourner de 1 degré ; +maj : tourner de 10 degrés\n\
+      z : zoomer ; Z : zoomer dix fois\n\
+      x : dézoomer ; X : dézoomer dix fois\n\
+      s : zoomer un petit peu\n\
+      a : animer (boucle de petits zooms et d'écritures de fichiers ppm)\n\
+      espace : pause/reprise\n\
+    Color palette\n\
+      r: change to random color palette; R very random\n\
+      left-arrow: previous color palette\n\
+      right-arrow: next color palette\n\
+      [ ] =: decrease/increase/medium saturation (ctrl: spreading)\n\
+      { } -: decrease/increase/medium brightness (ctrl: spreading)\n\
+      ( ): colors permutation (ctrl: fast)\n\
+    Iterations\n\
+      d: decrease number of iterations (faster)\n\
+      u: increase number of iterations (less black)\n\
+    Information\n\
+      .: draw half sized rectangle around center\n\
+      c: display color palette\n\
+      i: display interesting points in white\n\
+      /: erase information\n\
+      shift + mouse button 1: draw iteration points\n\
+    Computations\n\
+      1: computations with integers\n\
+      2: computations with integers 64 bits\n\
+      3: computations with floats (default)\n\
+      4: computations with big integers (bignum)

@@ -1,0 +1,45 @@
+Version 1.03
+------------
+
+* [28 Dec 2017] Changed String into Bytes for new OCaml compatibility.
+
+Version 1.02
+------------
+
+* [31 Oct 2016] Changed to make it compiled with recent ocaml compiler.
+* [07 Apr 2014] Zoom area (shortcut '.') add a displaying of middle lines.
+
+Version 1.01
+------------
+
+* [25 Jan 2014] Added option "-mlazy" (master lazy): do nothing then
+  slaves are working.
+* [18 Jan 2014] Displaying clock pointer when changing history page since
+  it can be slow (gtk mode).
+* [19 Nov 2010] Added menus buttons to change saturation, brightness
+  and permutation of colors (in gtk mode).
+* [14 Nov 2010] Default palette is now "rainbow".
+* [11 Nov 2010] Set default history size (option -h) to 0 (instead of 5)
+  because it caused a small slowdown when clicking.
+* [09 Nov 2010] Speeded up points computation in float (lev < 46) by writing
+  the loop in C.
+
+Version 1.00
+------------
+
+* Added interfaces with lablgtk2 and opengl.
+* Numerous changes...
+
+* [09 Jan 09] added [mlbrot_slave] command and option -slave to allow
+  slaves servers to work with [mlbrot].
+* [22 Dec 08] allow the effect of random color change by random chunks to
+  be interrupted by the user.
+* [23 Dec 08] added call to mpfr library (if exists) which computes in
+  arbitrary long floats, for descending deeper than level 46. Added
+  "configure" script.
+* [25 Dec 08] added option -m3 for formula z^3+c instead of z^2+c, and
+  option -mlb <int> for z^n+c, resulting different images kinds.
+* [26 Dec 08] added images history: lattest images are kept and can
+  be redrawn; if not completely drawn, the display restarts where it had
+  been interrupted.
+* [28 Dec 08] added command 'p' to save the current image in 'mlbrot.ppm'.

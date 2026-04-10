@@ -1,0 +1,236 @@
+#!/bin/sh
+# $Id: configure,v 1.49 2017/01/09 01:35:27 deraugla Exp $
+
+# Parse command-line arguments
+
+mpfr=no
+mpfrdir=
+mpz=yes
+mpzdir=/usr/include
+help=no
+with_opengl=yes
+with_gtk=yes
+with_rt=yes
+
+while : ; do
+  case "$1" in
+    "") break;;
+    -no-mpz|--no-mpz)
+        mpz=no;;
+    -mpzdir|--mpzdir)
+        mpzdir=$2; shift;;
+    -no-mpfr|--no-mpfr)
+        mpfr=no;;
+    -mpfrdir|--mpfrdir)
+        mpfrdir=$2; shift;;
+    -no-gtk|--no-gtk)
+        with_gtk=no;;
+    -no-opengl|--no-opengl)
+        with_opengl=no;;
+    -no-rt|--no-rt)
+        with_rt=no;;
+    -help|--help)
+        help=yes;;
+    *) echo "Unknown option \"$1\"." 1>&2; exit 2;;
+  esac
+  shift
+done
+
+if [ "$help" = "yes" ]; then
+  cat <<EOF
+Usage: $0 [OPTION]...
+
+  -help, --help             display this help and exit
+  -no-mpz, --no-mpz         do not use the mpz library
+  -mpzdir, --mpzdir DIR     location of mpz root dir (has a subdir 'usr')
+  -no-mpfr, --no-mpfr       do not use the mpfr library
+  -mpfrdir, --mpfrdir DIR   location of mpfr root dir (has a subdir 'usr')
+  -no-gtk, --no-gtk         don't use graphic toolkit GTK
+  -no-opengl, --no-opengl   don't use graphic toolkit OpenGL
+  -no-rt, --no-rt           don't use graphic toolkit RT
+EOF
+  echo
+  exit 0
+fi
+
+> config.log
+> config/Makefile
+
+echo '# Makefile.config
+' >> config/Makefile
+
+c5def=
+linkflags=
+
+# search for ocaml library
+
+ocamllib=`ocamlc -where`
+echo "OCAMLLIB=$ocamllib" >> config/Makefile
+
+# search for graphic toolkit libraries
+
+gtkdir="+lablgtk2"
+gtkdir="+site-lib/lablgtk2"
+if [ $with_gtk = yes ]; then
+  echo "open Gtk" > config/t.ml
+  if ocamlc -I $gtkdir -i config/t.ml >/dev/null 2>&1; then
+    echo "GTK found"
+  else
+    echo "GTK ($gtkdir) not found"
+    with_gtk=no
+  fi
+fi
+
+opengldir="+glMLite"
+openglpath="\$(OCAMLLIB)/glMLite"
+if [ $with_opengl = yes ]; then
+  echo "open GL" > config/t.ml
+  if ocamlc -I $opengldir -i config/t.ml >/dev/null 2>&1; then
+    echo "OpenGL found"
+  else
+    echo "OpenGL not found"
+    with_opengl=no
+  fi
+fi
+
+rtdir="../../olibrt/master/rt"
+rtpath="../../olibrt/master/rt"
+if [ $with_rt = yes ]; then
+  echo "open Rt" > config/t.ml
+  if ocamlc -I $rtdir -i config/t.ml >/dev/null 2>&1; then
+    echo "RT found"
+  else
+    echo "RT ($rtdir) not found"
+    with_rt=no
+  fi
+fi
+
+if [ $with_opengl = no -a $with_gtk = no -a $with_rt = no ]; then
+  echo
+  echo "configuration failed: no graphic library!"
+  exit 2
+fi
+
+if [ $with_opengl = yes ]; then
+  echo "OPENGL_INCL=-I $opengldir" >> config/Makefile
+  echo "OPENGL_OBJS=\$(OPENGL_OBJS_OPT)" >> config/Makefile
+  echo "OPENGL_LIB=\$(OPENGL_LIB_OPT)" >> config/Makefile
+  c5def="$d5def -DOPENGL"
+  linkflags="$linkflags -cclib $openglpath/libgl_stubs.a"
+else
+  echo "OPENGL_INCL=" >> config/Makefile
+  echo "OPENGL_OBJS=" >> config/Makefile
+  echo "OPENGL_LIB=" >> config/Makefile
+fi
+
+if [ $with_gtk = yes ]; then
+  echo "GTK_INCL=-I $gtkdir" >> config/Makefile
+  echo "GTK_OBJS=\$(GTK_OBJS_OPT)" >> config/Makefile
+  echo "GTK_LIB=\$(GTK_LIB_OPT)" >> config/Makefile
+  c5def="$c5def -DGTK"
+else
+  echo "GTK_INCL=" >> config/Makefile
+  echo "GTK_OBJS=" >> config/Makefile
+  echo "GTK_LIB=" >> config/Makefile
+fi
+
+if [ $with_rt = yes ]; then
+  echo "RT_INCL=-I $rtdir" >> config/Makefile
+  echo "RT_OBJS=\$(RT_OBJS_OPT)" >> config/Makefile
+  echo "RT_LIB=\$(RT_LIB_OPT)" >> config/Makefile
+  echo "MKBROT=mkbrot" >> config/Makefile
+  c5def="$c5def -DRT"
+#  linkflags="$linkflags -cclib $rtpath/../Xlib/libx.a -cclib -L/usr/X11R6/lib -cclib -lX11"
+  linkflags="$linkflags -cclib $rtpath/../Xlib/libx.a -cclib -L/usr/lib/i386-linux-gnu -cclib -lX11"
+else
+  echo "RT_INCL=" >> config/Makefile
+  echo "RT_OBJS=" >> config/Makefile
+  echo "RT_LIB=" >> config/Makefile
+  echo "MKBROT=" >> config/Makefile
+fi
+
+# search for mpz library
+
+if [ "$mpz" = "yes" ]; then
+  if [ "$mpzdir" != "" ]; then
+    mpzdir=`(cd $mpzdir; pwd)`
+  fi
+#  d="$mpzdir/usr/include"
+  d="$mpzdir"
+  echo "#include \"$d/gmp.h\"" > toto.c
+  found_mpz=`cc -I$d -c toto.c >> config.log 2>&1; echo $?`
+  rm -f toto.[co]
+else
+  found_mpz="1"
+fi
+
+# seems that mpz does not exist any more
+# but is included in gmp (not sure of that)
+# but with that, it seems to compile with mpz
+# (thu 1st oct 2015)
+mpzdir=/usr/include/i386-linux-gnu
+found_mpz=0
+
+if [ "$found_mpz" = "0" ]; then
+  echo 'MPZ found'
+  echo "MPZ_DIR=$mpzdir
+MPZ_OBJS=ml_mpz.o" >> config/Makefile
+  c5def="$c5def -DMPZ"
+  if [ "$mpzdir" = "" ]; then
+    linkflags="$linkflags -cclib -lgmp"
+  else
+    linkflags="$linkflags -cclib -L\$(MPZ_DIR)/usr/lib -cclib -Wl,-rpath,\$(MPZ_DIR)/usr/lib -cclib -lgmp"
+  fi
+else
+  echo "MPZ_OBJS=" >> config/Makefile
+fi
+
+# search for mpfr library
+
+if [ "$mpfr" = "yes" ]; then
+  if [ "$mpfrdir" != "" ]; then
+    mpfrdir=`(cd $mpfrdir; pwd)`
+  fi
+  d="$mpfrdir/usr/include"
+  echo "#include \"$d/mpfr.h\"" > toto.c
+  found_mpfr=`cc -I$d -c toto.c >> config.log 2>&1; echo $?`
+  rm -f toto.[co]
+else
+  found_mpfr="1"
+fi
+
+if [ "$found_mpfr" = "0" ]; then
+  echo 'MPFR found'
+  echo "MPFR_DIR=$mpfrdir
+MPFR_OBJS=ml_mpfr.o" >> config/Makefile
+  c5def="$c5def -DMPFR"
+  if [ "$mpfrdir" = "" ]; then
+    if [ "$found_mpz" = "0" ]; then
+      linkflags="$linkflags -cclib -lmpfr"
+    else
+      linkflags="$linfkags -cclib -lmpfr -cclib -lgmp"
+    fi
+  else
+    if [ "$found_mpz" = "0" ]; then
+      if [ "$mpzdir" = "$mpfrdir" ]; then
+        linkflags="$linkflags -cclib -L\$(MPFR_DIR)/usr/lib -cclib -Wl,-rpath,\$(MPFR_DIR)/usr/lib -cclib -lmpfr -cclib -lgmp"
+      else
+        linkflags="$linkflags -cclib -L\$(MPFR_DIR)/usr/lib -cclib -Wl,-rpath,\$(MPFR_DIR)/usr/lib -cclib -lmpfr"
+      fi
+    else
+      linkflags="$linkflags -cclib -L\$(MPFR_DIR)/usr/lib -cclib -Wl,-rpath,\$(MPFR_DIR)/usr/lib -cclib -lmpfr -cclib -lgmp"
+    fi
+  fi
+else
+  echo 'MPFR_OBJS=' >> config/Makefile
+fi
+
+#
+
+echo "C5DEF=$c5def" >> config/Makefile
+echo "LINKFLAGS=$linkflags" >> config/Makefile
+
+# remake dependencies
+
+touch .depend
+make depend >> config.log 2>&1

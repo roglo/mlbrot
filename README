@@ -1,0 +1,67 @@
+MLBROT
+
+Zooms in Mandelbrot Set, to produce nice fractal images.
+This is version 1.02.
+
+To compile, you need:
+  OCaml
+  Camlp5
+and at least one of the following graphic toolkits libraries installed:
+  OpenGL
+  Lablgtk2
+  Olibrt
+and, recommended, but optionnal, the multiprecision library:
+  GMP (more precisely, its sub-library MPZ)
+
+GRAPHIC TOOLKIT LIBRARIES
+
+The graphic toolkit libraries allow to display the images. At run time,
+you can choose with which graphic toolkit library you want the images
+to be displayed among the ones found by 'configure' (see below).
+
+All graphic toolkit libraries don't have exactly the same interfaces,
+due to historical reasons. The nicest interface is by the graphic toolkit
+library:
+  Lablgtk2
+
+MULTIPLE PRECISION LIBRARY
+
+If the library GMP/MPZ (multiprecision library) is installed, it
+allows to zoom more. Otherwise, from the zoom 2^46 on, the quality
+of the images deteriorates.
+
+COMPILATION
+
+Type:
+   ./configure
+   make
+
+Command:
+   ./mlbrot
+
+Type option "-help" to see its options.
+
+INSTALL
+
+No installation provided. The program must be run in its directory.
+
+IMPROVE COMPUTATION SPEED USING MACHINE SLAVES
+
+Compile mlbrot in some machines <foo>, <bar> or any other machines you
+can access by ssh with, say, login <login>.
+
+When you launch mlbrot, use option "-hiring 8888".
+
+To add slaves, if machine <foo> has, say, 4 cores, do:
+
+  ssh -xf -f <login>@<foo> -R8889:localhost:8888 "
+cd <the mlbrot directory>;
+nice ./mlbrot_slave -q -n 1 localhost:8889 &
+nice ./mlbrot_slave -q -n 2 localhost:8889 &
+nice ./mlbrot_slave -q -n 3 localhost:8889 &
+nice ./mlbrot_slave -q -n 4 localhost:8889"
+
+Do the same for machine <bar> or any other machines.
+
+The ports 8888 and 8889 can be actually any port number > 1024 which
+is available (error message if not).

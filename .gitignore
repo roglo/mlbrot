@@ -1,0 +1,9 @@
+*.cm[iox]
+*.ppo
+mmagic.ml
+mlbrot
+mlbrot.out
+mlbrot_slave
+mkbrot
+.depend
+config.log
