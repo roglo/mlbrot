@@ -1151,6 +1151,8 @@ Rt.term_font.(3) := "-*-terminus-bold-r-*-20-*";
 
 value x_init init_pos init_wid init_hei c_pal_def c_pal = do {
   let xd = rt_initialize "" in
+  let init_wid = pix_of_mm xd (float init_wid /. 4.) in
+  let init_hei = pix_of_mm xd (float init_hei /. 4.) in
   rt_select_char_set xd Utf_8;
   let xa = rt_args [xd] in
   let init_pos =
