@@ -16,7 +16,7 @@ OPENGL_OBJS_OPT=graph_opengl.cmx
 OPENGL_LIB_OPT=GL.cmxa Glut.cmxa
 
 RT_OBJS_OPT=psbrot.cmx graph_rt.cmx
-RT_LIB_OPT=librt.cmxa
+RT_LIB_OPT=xft.cmx librt.cmxa
 
 OBJS=$(OBJS_COMM) $(OPENGL_OBJS) $(GTK_OBJS) $(RT_OBJS) mlbrot.cmx
 

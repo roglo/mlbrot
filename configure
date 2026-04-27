@@ -140,8 +140,7 @@ if [ $with_rt = yes ]; then
   echo "RT_LIB=\$(RT_LIB_OPT)" >> config/Makefile
   echo "MKBROT=mkbrot" >> config/Makefile
   c5def="$c5def -DRT"
-#  linkflags="$linkflags -cclib $rtpath/../Xlib/libx.a -cclib -L/usr/X11R6/lib -cclib -lX11"
-  linkflags="$linkflags -cclib $rtpath/../Xlib/libx.a -cclib -L/usr/lib/i386-linux-gnu -cclib -lX11"
+  linkflags="$linkflags -cclib $rtpath/../Xft/libxft.a -cclib $rtpath/../Xlib/libx.a -cclib -L/usr/lib/i386-linux-gnu -cclib -lX11 -cclib -lXft -cclib -lXrandr"
 else
   echo "RT_INCL=" >> config/Makefile
   echo "RT_OBJS=" >> config/Makefile
