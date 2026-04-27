@@ -4,8 +4,8 @@ Zooms in Mandelbrot Set, to produce nice fractal images.
 This is version 1.02.
 
 To compile, you need:
-  OCaml
-  Camlp5
+  OCaml 4.07.0
+  Camlp5 4.06-exp
 and at least one of the following graphic toolkits libraries installed:
   OpenGL
   Lablgtk2
