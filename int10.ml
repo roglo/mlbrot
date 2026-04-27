@@ -7,7 +7,7 @@ value ln10base = 2;
 
 value zero = 0;
 
-value abs = Pervasives.abs;
+value abs = abs;
 value add = \+;
 value sub = \-;
 value add_int x i = x + base * i;
@@ -25,7 +25,7 @@ value of_string s = int_of_string s * base;
 value to_float x = float x /. float base;
 value to_string x =
   let sign = if x < 0 then "-" else "" in
-  let x = Pervasives.abs x in
+  let x = abs x in
   let frac =
     let s = Printf.sprintf "%08d" (x mod base) in
     String.sub s (String.length s - ln10base) ln10base

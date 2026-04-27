@@ -247,10 +247,10 @@ module Mfloat_flo : Mfloat with type t = float =
     value mult x y = x *. y;
     value sqr x = x *. x;
     value div x y = x /. y;
-    value exp = Pervasives.exp;
-    value cos = Pervasives.cos;
-    value sin = Pervasives.sin;
-    value log = Pervasives.log;
+    value exp = exp;
+    value cos = cos;
+    value sin = sin;
+    value log = log;
     value to_string x = sprintf "%.16g" x;
     value of_string _ = float_of_string;
     value to_float x = x;

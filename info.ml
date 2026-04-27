@@ -1701,7 +1701,7 @@ value parse_scenario_file fname =
   match try Some (open_in fname) with [ Sys_error _ -> None ] with
   [ Some ic -> do {
       let r =
-        try parse_scenario (Stream.of_channel ic) with
+        try parse_scenario (Istream.of_channel ic) with
         [ Ploc.Exc loc e -> do {
             let err_line = Ploc.line_nb loc in
             let c1 = Ploc.first_pos loc - Ploc.bol_pos loc in
@@ -1710,7 +1710,7 @@ value parse_scenario_file fname =
               fname err_line c1 c2;
             flush stderr;
             match e with
-            [ Stream.Error m -> do {
+            [ Istream.Error m -> do {
                 eprintf "Syntax error: %s\n" m;
                 flush stderr;
                 exit 2
