@@ -389,120 +389,6 @@ value int_frac_exp_of_mpfr base x =
 ;
 END;
 
-module Mfloat_big : Mfloat =
-  struct
-    open Big_int;
-    type t = big_int;
-    type prec 't =
-      { e : mutable int;
-        m : mutable 't;
-        half_m : mutable 't;
-        one : mutable 't;
-        b_four : mutable 't;
-        one_half : mutable 't }
-    ;
-    value string_of_num_type () = "big";
-    value two_big_int = big_int_of_int 2;
-    value s =
-      {e = 0; m = zero_big_int; half_m = zero_big_int; one = zero_big_int;
-       b_four = zero_big_int; one_half = zero_big_int}
-    ;
-    value set_default_prec e = do {
-      s.e := e;
-      s.m := power_int_positive_int 2 e;
-      s.half_m := power_int_positive_int 2 (e - 1);
-      s.one := s.m;
-      s.b_four := mult_int_big_int 4 (square_big_int s.m);
-      s.one_half := div_big_int s.one two_big_int;
-    };
-    set_default_prec 53;
-
-    value neg = minus_big_int;
-    value twice x = mult_int_big_int 2 x;
-    value half x = div_big_int x two_big_int;
-    value add = add_big_int;
-    value sub = sub_big_int;
-    value mult_int x y = mult_int_big_int y x;
-    value mult x y = div_big_int (mult_big_int x y) s.m;
-    value sqr x = mult x x;
-    value div x y = div_big_int (mult_big_int x s.m) y;
-    value exp x = failwith "not impl big.exp";
-    value cos x = failwith "not impl big.cos";
-    value sin x = failwith "not impl big.sin";
-    value log x = failwith "not impl big.log";
-    value to_string x = sprintf "%.16g" (ldexp (float_of_big_int x) (-s.e));
-    value of_sign_int_frac_exp is_neg int frac exp =
-      let r = mult_big_int (big_int_of_string (int ^ frac)) s.m in
-      let e = String.length frac - exp in
-      let r =
-        if e > 0 then div_big_int r (power_int_positive_int 10 e)
-        else if e < 0 then mult_big_int r (power_int_positive_int 10 (-e))
-        else r
-      in
-      if is_neg then minus_big_int r else r
-    ;
-    value of_string _ t =
-      let (is_neg, int, frac, exp) = sign_int_frac_exp_of_string t in
-      of_sign_int_frac_exp is_neg int frac exp
-    ;
-    value to_float x = ldexp (float_of_big_int x) (-s.e);
-    value of_float f =
-      let str = sprintf "%.0f" (ldexp f s.e) in
-      big_int_of_string str
-    ;
-    value get_prec _ = 0;
-    IFDEF MPFR THEN
-      value of_mpfr f =
-        let (is_neg, int, frac, exp) = int_frac_exp_of_mpfr 10 f in
-        of_sign_int_frac_exp is_neg int frac exp
-      ;
-    END;
-    value of_best_float f =
-      IFDEF MPFR THEN of_mpfr f
-      ELSIFDEF MPZ THEN failwith "big.of_best_float"
-      ELSE of_float f END
-    ;
-    value xy_of_start =
-      fun
-      [ Some (xn, yn) -> (xn, yn)
-      | None -> (zero_big_int, zero_big_int) ]
-    ;
-    value mandelbrot_point a b nb_it start = 
-      let (xn, yn) = xy_of_start start in
-      loop 0 xn yn (square_big_int xn) (square_big_int yn)
-      where rec loop it xn yn b_sqr_xn b_sqr_yn =
-        if it >= nb_it then LimitReached xn yn 0
-        else
-          let yn =
-            add_big_int (div_big_int (mult_big_int xn yn) s.half_m) b
-          in
-          let xn =
-            add_big_int (div_big_int (sub_big_int b_sqr_xn b_sqr_yn) s.m) a
-          in
-          let b_sqr_yn = square_big_int yn in
-          let b_sqr_xn = square_big_int xn in
-          if ge_big_int (add_big_int b_sqr_xn b_sqr_yn) s.b_four then
-            Result it
-          else
-            loop (it + 1) xn yn b_sqr_xn b_sqr_yn
-    ;
-    value mandelbrot_point3 a b nb_it _ =
-      failwith "not impl Mfloat_big.mandelbrot_point3"
-    ;
-    value mandelbrot_point_m m a b nb_it _ =
-      failwith "not impl Mfloat_big.mandelbrot_point_m"
-    ;
-    value lambda_point a b nb_it _ =
-      failwith "not impl Mfloat_big.lamda_point"
-    ;
-    value set_num _ = ();
-    value get_num () = failwith "get_num";
-    value with_prec _ x = x;
-    value serialize x = {s_prec = get_prec x; s_value = to_string x};
-    value deserialize s = of_string s.s_prec s.s_value;
-  end
-;
-
 IFDEF MPFR THEN
 module Mfloat_mpf : Mfloat with type t = Mpfr.t =
   struct
@@ -784,7 +670,6 @@ module M : Mfloat =
       [ F_int of Mfloat_int.t
       | F_i64 of Mfloat_i64.t
       | F_flo of Mfloat_flo.t
-      | F_big of Mfloat_big.t
       | IFDEF MPFR THEN
         F_mpf of Mfloat_mpf.t
         END
@@ -799,7 +684,6 @@ module M : Mfloat =
       [ N_int -> Mfloat_int.string_of_num_type ()
       | N_i64 -> Mfloat_i64.string_of_num_type ()
       | N_flo -> Mfloat_flo.string_of_num_type ()
-      | N_big -> Mfloat_big.string_of_num_type ()
       | IFDEF MPFR THEN
         N_mpf -> Mfloat_mpf.string_of_num_type ()
         END
@@ -812,7 +696,6 @@ module M : Mfloat =
       [ F_int a -> a
       | F_i64 a -> Mfloat_int.of_float (Mfloat_i64.to_float a)
       | F_flo a -> Mfloat_int.of_float (Mfloat_flo.to_float a)
-      | F_big a -> Mfloat_int.of_float (Mfloat_big.to_float a)
       | IFDEF MPFR THEN
         F_mpf a -> Mfloat_int.of_float (Mfloat_mpf.to_float a)
         END
@@ -825,7 +708,6 @@ module M : Mfloat =
       [ F_int a -> Mfloat_i64.of_float (Mfloat_int.to_float a)
       | F_i64 a -> a
       | F_flo a -> Mfloat_i64.of_float (Mfloat_flo.to_float a)
-      | F_big a -> Mfloat_i64.of_float (Mfloat_big.to_float a)
       | IFDEF MPFR THEN
         F_mpf a -> Mfloat_i64.of_float (Mfloat_mpf.to_float a)
         END
@@ -838,25 +720,11 @@ module M : Mfloat =
       [ F_int a -> Mfloat_flo.of_float (Mfloat_int.to_float a)
       | F_i64 a -> Mfloat_flo.of_float (Mfloat_i64.to_float a)
       | F_flo a -> a
-      | F_big a -> Mfloat_flo.of_float (Mfloat_big.to_float a)
       | IFDEF MPFR THEN
         F_mpf a -> Mfloat_flo.of_float (Mfloat_mpf.to_float a)
         END
       | IFDEF MPZ THEN
         F_mpz a -> Mfloat_flo.of_float (Mfloat_mpz.to_float a)
-        END ]
-    ;
-    value big_value x =
-      match x.a with
-      [ F_int a -> Mfloat_big.of_float (Mfloat_int.to_float a)
-      | F_i64 a -> Mfloat_big.of_float (Mfloat_i64.to_float a)
-      | F_flo a -> Mfloat_big.of_float (Mfloat_flo.to_float a)
-      | F_big a -> a
-      | IFDEF MPFR THEN
-        F_mpf a -> Mfloat_big.of_float (Mfloat_mpf.to_float a)
-        END
-      | IFDEF MPZ THEN
-        F_mpz a -> Mfloat_big.of_float (Mfloat_mpz.to_float a)
         END ]
     ;
     IFDEF MPFR THEN
@@ -878,7 +746,6 @@ module M : Mfloat =
       [ F_int a -> Mfloat_mpz.of_float (Mfloat_int.to_float a)
       | F_i64 a -> Mfloat_mpz.of_float (Mfloat_i64.to_float a)
       | F_flo a -> Mfloat_mpz.of_float (Mfloat_flo.to_float a)
-      | F_big a -> Mfloat_mpz.of_float (Mfloat_big.to_float a)
       | IFDEF MPFR THEN
         F_mpf a -> Mfloat_mpz.of_float (Mfloat_mpf.to_float a)
         END
@@ -912,15 +779,6 @@ module M : Mfloat =
           a
         } ]
     ;
-    value to_big x =
-      match x.a with
-      [ F_big a -> a
-      | _ -> do {
-          let a = big_value x in
-          x.a := F_big a;
-          a
-        } ]
-    ;
     IFDEF MPFR THEN
     value to_mpf x =
       match x.a with
@@ -948,7 +806,6 @@ module M : Mfloat =
       [ F_int a -> {a = F_int (Mfloat_int.neg a)}
       | F_i64 a -> {a = F_i64 (Mfloat_i64.neg a)}
       | F_flo a -> {a = F_flo (Mfloat_flo.neg a)}
-      | F_big a -> {a = F_big (Mfloat_big.neg a)}
       | IFDEF MPFR THEN
         F_mpf a -> {a = F_mpf (Mfloat_mpf.neg a)}
         END
@@ -961,7 +818,6 @@ module M : Mfloat =
       [ N_int -> {a = F_int (Mfloat_int.twice (to_int x))}
       | N_i64 -> {a = F_i64 (Mfloat_i64.twice (to_i64 x))}
       | N_flo -> {a = F_flo (Mfloat_flo.twice (to_flo x))}
-      | N_big -> {a = F_big (Mfloat_big.twice (to_big x))}
       | IFDEF MPFR THEN
         N_mpf -> {a = F_mpf (Mfloat_mpf.twice (to_mpf x))}
         END
@@ -974,7 +830,6 @@ module M : Mfloat =
       [ N_int -> {a = F_int (Mfloat_int.half (to_int x))}
       | N_i64 -> {a = F_i64 (Mfloat_i64.half (to_i64 x))}
       | N_flo -> {a = F_flo (Mfloat_flo.half (to_flo x))}
-      | N_big -> {a = F_big (Mfloat_big.half (to_big x))}
       | IFDEF MPFR THEN
         N_mpf -> {a = F_mpf (Mfloat_mpf.half (to_mpf x))}
         END
@@ -987,7 +842,6 @@ module M : Mfloat =
       [ N_int -> {a = F_int (Mfloat_int.add (to_int x) (to_int y))}
       | N_i64 -> {a = F_i64 (Mfloat_i64.add (to_i64 x) (to_i64 y))}
       | N_flo -> {a = F_flo (Mfloat_flo.add (to_flo x) (to_flo y))}
-      | N_big -> {a = F_big (Mfloat_big.add (to_big x) (to_big y))}
       | IFDEF MPFR THEN
         N_mpf -> {a = F_mpf (Mfloat_mpf.add (to_mpf x) (to_mpf y))}
         END
@@ -1000,7 +854,6 @@ module M : Mfloat =
       [ N_int -> {a = F_int (Mfloat_int.sub (to_int x) (to_int y))}
       | N_i64 -> {a = F_i64 (Mfloat_i64.sub (to_i64 x) (to_i64 y))}
       | N_flo -> {a = F_flo (Mfloat_flo.sub (to_flo x) (to_flo y))}
-      | N_big -> {a = F_big (Mfloat_big.sub (to_big x) (to_big y))}
       | IFDEF MPFR THEN
         N_mpf -> {a = F_mpf (Mfloat_mpf.sub (to_mpf x) (to_mpf y))}
         END
@@ -1013,7 +866,6 @@ module M : Mfloat =
       [ N_int -> {a = F_int (Mfloat_int.mult_int (to_int x) y)}
       | N_i64 -> {a = F_i64 (Mfloat_i64.mult_int (to_i64 x) y)}
       | N_flo -> {a = F_flo (Mfloat_flo.mult_int (to_flo x) y)}
-      | N_big -> {a = F_big (Mfloat_big.mult_int (to_big x) y)}
       | IFDEF MPFR THEN
         N_mpf -> {a = F_mpf (Mfloat_mpf.mult_int (to_mpf x) y)}
         END
@@ -1026,7 +878,6 @@ module M : Mfloat =
       [ N_int -> {a = F_int (Mfloat_int.mult (to_int x) (to_int y))}
       | N_i64 -> {a = F_i64 (Mfloat_i64.mult (to_i64 x) (to_i64 y))}
       | N_flo -> {a = F_flo (Mfloat_flo.mult (to_flo x) (to_flo y))}
-      | N_big -> {a = F_big (Mfloat_big.mult (to_big x) (to_big y))}
       | IFDEF MPFR THEN
         N_mpf -> {a = F_mpf (Mfloat_mpf.mult (to_mpf x) (to_mpf y))}
         END
@@ -1039,7 +890,6 @@ module M : Mfloat =
       [ N_int -> {a = F_int (Mfloat_int.sqr (to_int x))}
       | N_i64 -> {a = F_i64 (Mfloat_i64.sqr (to_i64 x))}
       | N_flo -> {a = F_flo (Mfloat_flo.sqr (to_flo x))}
-      | N_big -> {a = F_big (Mfloat_big.sqr (to_big x))}
       | IFDEF MPFR THEN
         N_mpf -> {a = F_mpf (Mfloat_mpf.sqr (to_mpf x))}
         END
@@ -1052,7 +902,6 @@ module M : Mfloat =
       [ N_int -> {a = F_int (Mfloat_int.div (to_int x) (to_int y))}
       | N_i64 -> {a = F_i64 (Mfloat_i64.div (to_i64 x) (to_i64 y))}
       | N_flo -> {a = F_flo (Mfloat_flo.div (to_flo x) (to_flo y))}
-      | N_big -> {a = F_big (Mfloat_big.div (to_big x) (to_big y))}
       | IFDEF MPFR THEN
         N_mpf -> {a = F_mpf (Mfloat_mpf.div (to_mpf x) (to_mpf y))}
         END
@@ -1069,7 +918,6 @@ module M : Mfloat =
       [ N_int -> Mfloat_int.to_string (to_int x)
       | N_i64 -> Mfloat_i64.to_string (to_i64 x)
       | N_flo -> Mfloat_flo.to_string (to_flo x)
-      | N_big -> Mfloat_big.to_string (to_big x)
       | IFDEF MPFR THEN
         N_mpf -> Mfloat_mpf.to_string (to_mpf x)
         END
@@ -1082,7 +930,6 @@ module M : Mfloat =
       [ N_int -> {a = F_int (Mfloat_int.of_string prec s)}
       | N_i64 -> {a = F_i64 (Mfloat_i64.of_string prec s)}
       | N_flo -> {a = F_flo (Mfloat_flo.of_string prec s)}
-      | N_big -> {a = F_big (Mfloat_big.of_string prec s)}
       | IFDEF MPFR THEN
         N_mpf -> {a = F_mpf (Mfloat_mpf.of_string prec s)}
         END
@@ -1095,7 +942,6 @@ module M : Mfloat =
       [ F_int a -> Mfloat_int.to_float a
       | F_i64 a -> Mfloat_i64.to_float a
       | F_flo a -> Mfloat_flo.to_float a
-      | F_big a -> Mfloat_big.to_float a
       | IFDEF MPFR THEN
         F_mpf a -> Mfloat_mpf.to_float a
         END
@@ -1108,7 +954,6 @@ module M : Mfloat =
       [ N_int -> {a = F_int (Mfloat_int.of_float f)}
       | N_i64 -> {a = F_i64 (Mfloat_i64.of_float f)}
       | N_flo -> {a = F_flo (Mfloat_flo.of_float f)}
-      | N_big -> {a = F_big (Mfloat_big.of_float f)}
       | IFDEF MPFR THEN
         N_mpf -> {a = F_mpf (Mfloat_mpf.of_float f)}
         END
@@ -1121,7 +966,6 @@ module M : Mfloat =
       [ N_int -> {a = F_int (Mfloat_int.of_best_float f)}
       | N_i64 -> {a = F_i64 (Mfloat_i64.of_best_float f)}
       | N_flo -> {a = F_flo (Mfloat_flo.of_best_float f)}
-      | N_big -> {a = F_big (Mfloat_big.of_best_float f)}
       | IFDEF MPFR THEN
         N_mpf -> {a = F_mpf (Mfloat_mpf.of_best_float f)}
         END
@@ -1134,7 +978,6 @@ module M : Mfloat =
       [ N_int -> Mfloat_int.get_prec (to_int x)
       | N_i64 -> Mfloat_i64.get_prec (to_i64 x)
       | N_flo -> Mfloat_flo.get_prec (to_flo x)
-      | N_big -> Mfloat_big.get_prec (to_big x)
       | IFDEF MPFR THEN
         N_mpf -> Mfloat_mpf.get_prec (to_mpf x)
         END
@@ -1147,7 +990,6 @@ module M : Mfloat =
       [ N_int -> {a = F_int (Mfloat_int.with_prec p (to_int x))}
       | N_i64 -> {a = F_i64 (Mfloat_i64.with_prec p (to_i64 x))}
       | N_flo -> {a = F_flo (Mfloat_flo.with_prec p (to_flo x))}
-      | N_big -> {a = F_big (Mfloat_big.with_prec p (to_big x))}
       | IFDEF MPFR THEN
         N_mpf -> {a = F_mpf (Mfloat_mpf.with_prec p (to_mpf x))}
         END
@@ -1158,7 +1000,6 @@ module M : Mfloat =
     value int_f = (fun x -> {a = F_int x}, to_int);
     value i64_f = (fun x -> {a = F_i64 x}, to_i64);
     value flo_f = (fun x -> {a = F_flo x}, to_flo);
-    value big_f = (fun x -> {a = F_big x}, to_big);
     IFDEF MPFR THEN
     value mpf_f = (fun x -> {a = F_mpf x}, to_mpf);
     END;
@@ -1176,7 +1017,6 @@ module M : Mfloat =
       [ N_int -> f_gen Mfloat_int.mandelbrot_point a b start int_f nb_it
       | N_i64 -> f_gen Mfloat_i64.mandelbrot_point a b start i64_f nb_it
       | N_flo -> f_gen Mfloat_flo.mandelbrot_point a b start flo_f nb_it
-      | N_big -> f_gen Mfloat_big.mandelbrot_point a b start big_f nb_it
       | IFDEF MPFR THEN
         N_mpf -> f_gen Mfloat_mpf.mandelbrot_point a b start mpf_f nb_it
         END
@@ -1189,7 +1029,6 @@ module M : Mfloat =
       [ N_int -> f_gen Mfloat_int.mandelbrot_point3 a b start int_f nb_it
       | N_i64 -> f_gen Mfloat_i64.mandelbrot_point3 a b start i64_f nb_it
       | N_flo -> f_gen Mfloat_flo.mandelbrot_point3 a b start flo_f nb_it
-      | N_big -> f_gen Mfloat_big.mandelbrot_point3 a b start big_f nb_it
       | IFDEF MPFR THEN
         N_mpf -> f_gen Mfloat_mpf.mandelbrot_point3 a b start mpf_f nb_it
         END
@@ -1202,7 +1041,6 @@ module M : Mfloat =
       [ N_int -> f_gen (Mfloat_int.mandelbrot_point_m m) a b start int_f nb_it
       | N_i64 -> f_gen (Mfloat_i64.mandelbrot_point_m m) a b start i64_f nb_it
       | N_flo -> f_gen (Mfloat_flo.mandelbrot_point_m m) a b start flo_f nb_it
-      | N_big -> f_gen (Mfloat_big.mandelbrot_point_m m) a b start big_f nb_it
       | IFDEF MPFR THEN
         N_mpf -> f_gen (Mfloat_mpf.mandelbrot_point_m m) a b start mpf_f nb_it
         END
@@ -1215,7 +1053,6 @@ module M : Mfloat =
       [ N_int -> f_gen Mfloat_int.lambda_point a b start int_f nb_it
       | N_i64 -> f_gen Mfloat_i64.lambda_point a b start i64_f nb_it
       | N_flo -> f_gen Mfloat_flo.lambda_point a b start flo_f nb_it
-      | N_big -> f_gen Mfloat_big.lambda_point a b start big_f nb_it
       | IFDEF MPFR THEN
         N_mpf -> f_gen Mfloat_mpf.lambda_point a b start mpf_f nb_it
         END
@@ -1230,7 +1067,6 @@ module M : Mfloat =
       [ N_int -> Mfloat_int.set_default_prec p
       | N_i64 -> Mfloat_i64.set_default_prec p
       | N_flo -> Mfloat_flo.set_default_prec p
-      | N_big -> Mfloat_big.set_default_prec p
       | IFDEF MPFR THEN
         N_mpf -> Mfloat_mpf.set_default_prec p
         END
@@ -1248,7 +1084,6 @@ module M : Mfloat =
       [ N_int -> Mfloat_int.serialize (to_int x)
       | N_i64 -> Mfloat_i64.serialize (to_i64 x)
       | N_flo -> Mfloat_flo.serialize (to_flo x)
-      | N_big -> Mfloat_big.serialize (to_big x)
       | IFDEF MPFR THEN
         N_mpf -> Mfloat_mpf.serialize (to_mpf x)
         END
@@ -1261,7 +1096,6 @@ module M : Mfloat =
       [ N_int -> {a = F_int (Mfloat_int.deserialize s)}
       | N_i64 -> {a = F_i64 (Mfloat_i64.deserialize s)}
       | N_flo -> {a = F_flo (Mfloat_flo.deserialize s)}
-      | N_big -> {a = F_big (Mfloat_big.deserialize s)}
       | IFDEF MPFR THEN
         N_mpf -> {a = F_mpf (Mfloat_mpf.deserialize s)}
         END

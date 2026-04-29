@@ -1,5 +1,5 @@
 
-type num_type = [ N_int | N_i64 | N_flo | N_big | N_mpz ];
+type num_type = [ N_int | N_i64 | N_flo | N_mpz ];
 
 type serialized = { s_prec : int; s_value : string };
 

@@ -835,7 +835,6 @@ loop iy1 (-1, -1) where rec loop iy (prev_i, prev_j) =
       | K_Ascii '1' | K_KP_N 1 -> do { Info.set_num minfo isc N_int; None }
       | K_Ascii '2' | K_KP_N 2 -> do { Info.set_num minfo isc N_i64; None }
       | K_Ascii '3' | K_KP_N 3 -> do { Info.set_num minfo isc N_flo; None }
-      | K_Ascii '4' | K_KP_N 4 -> do { Info.set_num minfo isc N_big; None }
       | IFDEF MPFR THEN
         K_Ascii '5' | K_KP_N 5 -> do { Info.set_num minfo isc N_mpf; None }
         END

@@ -1,7 +1,7 @@
 (* $Id: mcomm.mli,v 1.37 2009/10/02 12:11:19 deraugla Exp $ *)
 
 type num_type =
-  [ N_int | N_i64 | N_flo | N_big
+  [ N_int | N_i64 | N_flo
   | IFDEF MPFR THEN N_mpf END
   | IFDEF MPZ THEN N_mpz END ]
 ;

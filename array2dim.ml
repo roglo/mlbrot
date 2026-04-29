@@ -1,5 +1,3 @@
-(* $Id: array2dim.ml,v 1.7 2016/10/31 14:18:16 deraugla Exp $ *)
-
 type t 'a =
   { a : array (array 'a);
     d1 : int;

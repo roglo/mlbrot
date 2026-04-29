@@ -1,5 +1,3 @@
-(* $Id: graph_gtk.ml,v 1.134 2014/06/01 08:56:35 deraugla Exp $ *)
-
 open Info_def;
 open Mdef;
 open Mprintf;

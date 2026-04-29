@@ -1038,7 +1038,6 @@ value make_minfo rs w h c_pal_def c_pal slave_hiring = do {
     [ "int" -> N_int
     | "i64" -> N_i64
     | "flo" -> N_flo
-    | "big" -> N_big
     | IFDEF MPFR THEN
       "mpf" -> N_mpf
       END
