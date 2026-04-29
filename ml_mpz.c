@@ -59,15 +59,15 @@ static struct custom_operations custom_mpz_randstate_ops = {
 
 static value caml_alloc_mpz(mpz_t *x)
 {
-  value v = alloc_custom(&custom_mpz_ops, sizeof(mpz_t *), 0, 1);
+  value v = caml_alloc_custom(&custom_mpz_ops, sizeof(mpz_t *), 0, 1);
   Mpz_val(v) = x;
   return v;
 }
 
 static value caml_alloc_mpz_randstate(gmp_randstate_t *x)
 {
-  value v = alloc_custom(&custom_mpz_randstate_ops,
-                         sizeof(gmp_randstate_t *), 0, 1);
+  value v = caml_alloc_custom(&custom_mpz_randstate_ops,
+			      sizeof(gmp_randstate_t *), 0, 1);
   Randstate_val(v) = x;
   return v;
 }
@@ -322,7 +322,7 @@ value ml_mpz_of_string(value base_v, value str_v)
   CAMLlocal1(r_v);
   mpz_t *r;
   long base = Long_val(base_v);
-  char *str = String_val(str_v);
+  const char *str = String_val(str_v);
   if (base < 2 || base > 62)
     caml_invalid_argument("Mpz.of_string");
   else {
