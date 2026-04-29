@@ -52,13 +52,13 @@ depend:
 	mv .depend.new .depend
 
 mlbrot.out: $(OBJS:.cmx=.cmo)
-	$(OCAMLC) -custom -g $(XLIBOPT) $(PLUS_CAMLP5) gramlib.cma nums.cma unix.cma $(OPENGL_INCL) $(OPENGL_LIB:.cmxa=.cma) $(GTK_INCL) $(GTK_LIB:.cmxa=.cma) $(RT_INCL) $(RT_LIB:.cmxa=.cma) $(OBJS:.cmx=.cmo) $(LINKFLAGS) -o $@
+	$(OCAMLC) -custom -g $(XLIBOPT) $(PLUS_CAMLP5) gramlib.cma unix.cma $(OPENGL_INCL) $(OPENGL_LIB:.cmxa=.cma) $(GTK_INCL) $(GTK_LIB:.cmxa=.cma) $(RT_INCL) $(RT_LIB:.cmxa=.cma) $(OBJS:.cmx=.cmo) $(LINKFLAGS) -o $@
 
 mlbrot: $(OBJS)
-	$(OCAMLOPT) $(XLIBOPT) $(PLUS_CAMLP5) gramlib.cmxa nums.cmxa unix.cmxa $(OPENGL_INCL) $(OPENGL_LIB) $(GTK_INCL) $(GTK_LIB) $(RT_INCL) $(RT_LIB) $(OBJS) $(LINKFLAGS) -o $@
+	$(OCAMLOPT) $(XLIBOPT) $(PLUS_CAMLP5) gramlib.cmxa unix.cmxa $(OPENGL_INCL) $(OPENGL_LIB) $(GTK_INCL) $(GTK_LIB) $(RT_INCL) $(RT_LIB) $(OBJS) $(LINKFLAGS) -o $@
 
 mlbrot_slave: $(OBJS_SLAVE)
-	$(OCAMLOPT) nums.cmxa unix.cmxa $(OBJS_SLAVE) $(LINKFLAGS) -o $@
+	$(OCAMLOPT) unix.cmxa $(OBJS_SLAVE) $(LINKFLAGS) -o $@
 
 mkbrot: $(OBJS_MKBROT)
 	$(OCAMLOPT) $(XLIBOPT) $(RT_INCL) $(RT_LIB) $(OBJS_MKBROT) $(LINKFLAGS) -o $@
