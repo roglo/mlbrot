@@ -163,8 +163,8 @@ value main () = do {
   Arg.parse speclist anonfun usage;
   let xd = rt_initialize "" in
   let xa = rt_args [xd] in
-  let w = 768 in
-  let h = 432 in
+  let w = pix_of_mm xd (768. /. 4.) in
+  let h = pix_of_mm xd (432. /. 4.) in
   let pixmap = rt_create_pixmap xd (screen_width xd) (screen_height xd) in
   let c_black = rt_black_color xd in
   let c_white = rt_white_color xd in
