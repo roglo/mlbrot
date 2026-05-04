@@ -450,6 +450,28 @@ value draw_iteration_points wid minfo xinfo x y w h = do {
   restore_ctx ()
 };
 
+value julia_action wid =
+  let xd = xdata_of_widget wid in
+  let raw_wid = widget_named xd "raw" in
+  let info = get_info raw_wid in
+  match info.g_info with
+  [ Some (xinfo, xfun) → do {
+      let w = widget_width wid in
+      let h = widget_height wid in
+      let minfo = info.m_info in
+      let isc = minfo.state.cur in
+      Info.push_state minfo;
+      isc.julia :=
+        match isc.julia with
+        [ Some (xc, yc) → None
+        | None → Some (isc.xc, isc.yc) ];
+      let txt = if isc.julia = None then "Mandelbrot" else "Julia" in
+      alert wid xinfo txt;
+      Info.expose_mandel info w h True True
+    }
+  | None → None ]
+;
+
 value action_mandel2 wid info (xinfo, xfun) ev =
   let xd = xdata_of_widget wid in
   let minfo = info.m_info in
@@ -667,16 +689,7 @@ value action_mandel2 wid info (xinfo, xfun) ev =
         }
       | K_Ascii 'j' →
           if xinfo.check_event then return_event xinfo ev
-          else do {
-            Info.push_state minfo;
-            isc.julia :=
-              match isc.julia with
-              [ Some (xc, yc) → None
-              | None → Some (isc.xc, isc.yc) ];
-            let txt = if isc.julia = None then "Mandelbrot" else "Julia" in
-            alert wid xinfo txt;
-            Info.expose_mandel info w h True True
-          }
+	  else julia_action wid
       | K_Ascii 'k' → do {
           minfo.check_slaves_answers := not minfo.check_slaves_answers;
           mprintf "check slaves answers: %b\n" minfo.check_slaves_answers;
@@ -1115,7 +1128,7 @@ value action_mandel raw_wid ev =
 (*
 Rt.button_font.val := "-*-terminus-bold-r-*-20-*";
 *)
-Rt.title_font.val := "mono:size=16";
+Rt.title_font.val := "mono:size=14";
 (*
 Rt.term_font.(0) := "-*-terminus-bold-r-*-20-*";
 Rt.term_font.(1) := "-*-terminus-bold-r-*-20-*";
@@ -1190,12 +1203,15 @@ value x_init init_pos init_wid init_hei c_pal_def c_pal = do {
       (pack_desc [NameAtt "Application popup"]
          (Vertical,
           [button_desc [] ("Julia", None)
-             (action_button (fun _ -> ()));
+             (action_button
+	        (fun wid →
+		   let _ = julia_action raw_wid in
+		   ()));
            line_desc [] () action_no_line;
            button_desc [] ("en", None)
-            (action_button (fun _ -> ()));
+             (action_button (fun _ -> ()));
            button_desc [] ("fr", None)
-            (action_button (fun _ -> ()))])
+             (action_button (fun _ -> ()))])
           action_no_pack)
   in
   let scr_w = screen_width xd in
