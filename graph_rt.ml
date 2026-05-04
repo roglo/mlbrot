@@ -11,7 +11,8 @@ open Rt;
 
 type x_info =
   { xargs : Rt.xargs;
-    widget : Rt.widget;
+    gen_widget : Rt.widget;
+    raw_widget : Rt.widget;
     pixmap : Rt.pixmap;
     font : Rt.font;
     c_red : Rt.color;
@@ -495,21 +496,24 @@ value action_mandel2 wid info (xinfo, xfun) ev = do {
       | K_Ascii 'a' ->
           if xinfo.check_event then return_event xinfo ev
           else Info.apply_zoom info w h None False 0
-| K_Ascii 'b' -> do {
-    List.iter
-      (fun (a, s) -> do {
-         let b = Mfloat.Best.serialize a in
-         eprintf "1. %s (%d,\"%s\")\n" s b.s_prec (String.escaped b.s_value);
-         let b = Mfloat.Best.serialize (Mfloat.Best.deserialize b) in
-         eprintf "2. %s (%d,\"%s\")\n" s b.s_prec (String.escaped b.s_value);
-         let b = Mfloat.Best.serialize (Mfloat.Best.deserialize b) in
-         eprintf "3. %s (%d,\"%s\")\n" s b.s_prec (String.escaped b.s_value);
-         flush stderr;
-       })
-      [(isc.xc, "xc"); (isc.yc, "yc"); (isc.reduc, "rd")];
-    flush stderr;
-    None
-  }
+      | K_Ascii 'b' -> do {
+          List.iter
+            (fun (a, s) -> do {
+               let b = Mfloat.Best.serialize a in
+               eprintf "1. %s (%d,\"%s\")\n" s b.s_prec
+                 (String.escaped b.s_value);
+               let b = Mfloat.Best.serialize (Mfloat.Best.deserialize b) in
+               eprintf "2. %s (%d,\"%s\")\n" s b.s_prec
+                 (String.escaped b.s_value);
+               let b = Mfloat.Best.serialize (Mfloat.Best.deserialize b) in
+               eprintf "3. %s (%d,\"%s\")\n" s b.s_prec
+                 (String.escaped b.s_value);
+               flush stderr;
+            })
+           [(isc.xc, "xc"); (isc.yc, "yc"); (isc.reduc, "rd")];
+          flush stderr;
+          None
+        }
       | K_Ascii 'c' -> do {
           let nb_hues = List.length minfo.c_pal_def.hues in
           let c_pal = minfo.c_pal.c_tab in
@@ -1123,12 +1127,12 @@ loop iy1 (-1, -1) where rec loop iy (prev_i, prev_j) =
       None ]
 };
 
-value action_mandel wid ev =
-  let info = get_info wid in
+value action_mandel raw_wid ev =
+  let info = get_info raw_wid in
   match info.g_info with
   [ Some (xinfo, xfun) ->
       loop ev where rec loop ev = do {
-        let r = action_mandel2 wid info (xinfo, xfun) ev in
+        let r = action_mandel2 raw_wid info (xinfo, xfun) ev in
         match ev with
         [ RawEvKeyPress _ | RawEvButtonPress _ _ _ _ _ -> mflush ()
         | _ -> () ];
@@ -1150,6 +1154,9 @@ Rt.term_font.(2) := "-*-terminus-medium-o-*-20-*";
 Rt.term_font.(3) := "-*-terminus-bold-r-*-20-*";
 *)
 
+value action_popup name wid _ = ();
+value action_no_pack wid _ = ();
+
 value x_init init_pos init_wid init_hei c_pal_def c_pal = do {
   let xd = rt_initialize "" in
   let init_wid = pix_of_mm xd (float init_wid /. 4.) in
@@ -1165,10 +1172,18 @@ value x_init init_pos init_wid init_hei c_pal_def c_pal = do {
     let name = Filename.basename Sys.argv.(0) in
     rt_create_widget xd name name init_pos
       (Some (fun _ -> rt_stop_main_loop xa))
-      (raw_desc []
-         (init_wid, init_hei, 0,
-          [SelExposure; SelKeyPress; SelStructureNotify; SelButtonPress])
-         action_mandel)
+      (pack_desc []
+         (Vertical,
+          [pack_desc []
+             (Horizontal,
+              [button_desc [] ("Glop", None) (action_popup "pouet");
+               button_desc [] ("Tagada", None) (action_popup "tagada")])
+              action_no_pack;
+           raw_desc [FillerAtt; NameAtt "raw"]
+             (init_wid, init_hei, 0,
+              [SelExposure; SelKeyPress; SelStructureNotify; SelButtonPress])
+             action_mandel])
+         action_no_pack)
   in
   let scr_w = screen_width xd in
   let scr_h = screen_height xd in
@@ -1189,9 +1204,10 @@ value x_init init_pos init_wid init_hei c_pal_def c_pal = do {
   rt_fill_rectangle (PixmapDr pixmap) (0, 0, w, h);
   let font = rt_load_query_font xd "-*-*-bold-*-*-*-13-*-*-*-*-*-iso8859-*" in
   rt_select_font font;
+  let raw_wid = widget_named xd "raw" in
   let xinfo =
-    {xargs = xa; widget = wid; pixmap = pixmap; font = font;
-     c_red = c_red; c_green = c_green; c_blue = c_blue;
+    {xargs = xa; gen_widget = wid; raw_widget = raw_wid; pixmap = pixmap;
+     font = font; c_red = c_red; c_green = c_green; c_blue = c_blue;
      c_gray = c_gray; c_black = c_black; c_white = c_white;
      last_col = c_red;
      cursor_busy = rt_create_font_mouse xd xC_watch;
@@ -1228,12 +1244,12 @@ value update_point_in_pixmap xinfo chunk area (i, j) count = do {
 value x_pending_events xinfo = Rt.rt_pending_events xinfo.xargs;
 
 value x_make_area_visible xinfo eip frac (x, y, w, h) =
-  let wid = xinfo.widget in
+  let wid = xinfo.raw_widget in
   rt_clear_area wid (x, y, w, h)
 ;
 
 value x_refresh_pixmap_fast xinfo minfo show_fast =
-  refresh_pixmap_fast xinfo.widget xinfo minfo None show_fast
+  refresh_pixmap_fast xinfo.raw_widget xinfo minfo None show_fast
 ;
 
 value x_copy_area ginfo minfo (x, y, w, h) (x_dest, y_dest) = do {
@@ -1241,19 +1257,19 @@ value x_copy_area ginfo minfo (x, y, w, h) (x_dest, y_dest) = do {
   rt_copy_area drw drw (x, y, w, h) (x_dest, y_dest)
 };
 
-value x_make_window_visible xinfo = rt_clear_widget xinfo.widget;
+value x_make_window_visible xinfo = rt_clear_widget xinfo.raw_widget;
 
 value x_select_cursor xinfo into_win =
-  rt_select_mouse xinfo.widget
+  rt_select_mouse xinfo.raw_widget
     (if into_win then xinfo.cursor_busy else xinfo.cursor_finish)
 ;
 
 value x_select_cursor_pause xinfo =
-  rt_select_mouse xinfo.widget xinfo.cursor_pause
+  rt_select_mouse xinfo.raw_widget xinfo.cursor_pause
 ;
 
 value x_set_palette xinfo pal = do {
-  let wid = xinfo.widget in
+  let wid = xinfo.raw_widget in
   let xd = xdata_of_widget wid in
   Array.iter rt_free_color xinfo.x_pal;
   xinfo.x_pal := Array.map (fun p -> rt_create_color xd p.rgb) pal
@@ -1269,11 +1285,11 @@ value x_get_pending_event info xinfo = do {
   r
 };
 
-value x_unselect_cursor xinfo = rt_unselect_mouse xinfo.widget;
+value x_unselect_cursor xinfo = rt_unselect_mouse xinfo.raw_widget;
 
 value x_widget_size xinfo =
-  let w = widget_width xinfo.widget in
-  let h = widget_height xinfo.widget in
+  let w = widget_width xinfo.raw_widget in
+  let h = widget_height xinfo.raw_widget in
   (w, h)
 ;
 
@@ -1311,7 +1327,8 @@ value interactive () = do {
   let info = {m_info = minfo; g_info = Some (xinfo, xfun)} in
 
   let xa = xinfo.xargs in
-  let wid = xinfo.widget in
+  let gen_wid = xinfo.gen_widget in
+  let raw_wid = xinfo.raw_widget in
   let pixmap = xinfo.pixmap in
 
   match slave_hiring with
@@ -1319,31 +1336,31 @@ value interactive () = do {
       rt_select_file_descr xa (Mutil.int_of_file_descr s)
         (ask_for_connection info)
   | None -> () ];
-  rt_set_user_info wid (set_info info);
-  rt_change_background wid (PixmapPn pixmap);
-  rt_map_widget wid;
-  alert wid xinfo "type h for help";
+  rt_set_user_info raw_wid (set_info info);
+  rt_change_background raw_wid (PixmapPn pixmap);
+  rt_map_widget gen_wid;
+  alert raw_wid xinfo "type h for help";
   if try Sys.getenv "MLBROT" = "q" with [ Not_found -> False ] then
     xinfo.no_main_loop := True
   else ();
-  let wid_w = widget_width wid in
-  let wid_h = widget_height wid in
+  let wid_w = widget_width raw_wid in
+  let wid_h = widget_height raw_wid in
   match Info.expose_mandel info wid_w wid_h True True with
-  [ Some ev -> action_mandel wid ev
+  [ Some ev -> action_mandel raw_wid ev
   | None -> () ];
   if xinfo.no_main_loop then ()
   else do {
     match scenario_opt with
     [ Some scenario ->
         match Info.apply_scenario info w h scenario arg_ppm_from.val with
-        [ Some ev -> action_mandel wid ev
+        [ Some ev -> action_mandel raw_wid ev
         | None -> () ]
     | None -> () ];
     if xinfo.no_main_loop then () else rt_main_loop xa;
   };
-  let wid_w = widget_width wid in
-  let wid_h = widget_height wid in
-  let wid_x = widget_x wid in
-  let wid_y = widget_y wid in
+  let wid_w = widget_width raw_wid in
+  let wid_h = widget_height raw_wid in
+  let wid_x = widget_x raw_wid in
+  let wid_y = widget_y raw_wid in
   print_command minfo wid_w wid_h (Some (wid_x, wid_y));
 };
