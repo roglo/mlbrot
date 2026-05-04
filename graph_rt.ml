@@ -472,14 +472,21 @@ value julia_action wid =
   | None → None ]
 ;
 
+value unmap_popups xd = do {
+  rt_unmap_widget (widget_named xd "Application popup");
+  rt_unmap_widget (widget_named xd "Display popup");
+};
+
 value action_mandel2 wid info (xinfo, xfun) ev =
   let xd = xdata_of_widget wid in
   let minfo = info.m_info in
   let isc = minfo.state.cur in
   let w = widget_width wid in
   let h = widget_height wid in
+  let _ = unmap_popups xd in
   match ev with
   [ RawEvKeyPress kev →
+      let _ = unmap_popups xd in
       match kev.item with
       [ K_Ascii ' ' → do {
           if xinfo.check_event then xinfo.pending_event := Some ME_pause
@@ -1042,6 +1049,7 @@ value action_mandel2 wid info (xinfo, xfun) ev =
       | K_Escape → do { rt_clear_widget wid; None }
       | _ → None ]
   | RawEvButtonPress x y _ _ k →
+      let _ = unmap_popups xd in
       match k.item with
       [ 1 →
           if k.shiftMod then do {
@@ -1139,6 +1147,7 @@ Rt.term_font.(3) := "-*-terminus-bold-r-*-20-*";
 value action_popup name =
   let doit wid xll yll = do {
     let xd = xdata_of_widget wid in
+    let _ = unmap_popups xd in
     let pwid = widget_named xd name in
     rt_move_widget pwid xll yll;
     rt_map_widget pwid
@@ -1189,7 +1198,7 @@ value x_init init_pos init_wid init_hei c_pal_def c_pal = do {
               [button_desc [] (I18n.transl "Application", None)
 		 (action_popup "Application popup");
                button_desc [] (I18n.transl "Display", None)
-		 (action_popup "Display")])
+		 (action_popup "Display popup")])
              action_no_pack;
            raw_desc [FillerAtt; NameAtt "raw"]
              (init_wid, init_hei, 0,
@@ -1213,6 +1222,11 @@ value x_init init_pos init_wid init_hei c_pal_def c_pal = do {
            button_desc [] ("fr", None)
              (action_button (fun _ -> ()))])
           action_no_pack)
+  in
+  let _ =
+    rt_create_popup_widget xd
+      (pack_desc [NameAtt "Display popup"]
+         (Vertical, []) action_no_pack)
   in
   let scr_w = screen_width xd in
   let scr_h = screen_height xd in
