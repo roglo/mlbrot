@@ -1139,8 +1139,10 @@ value action_mandel wid ev =
   | None -> () ]
 ;
 
+(*
 Rt.button_font.val := "-*-terminus-bold-r-*-20-*";
-Rt.title_font.val := "-*-terminus-bold-r-*-20-*";
+*)
+Rt.title_font.val := "mono:size=16";
 (*
 Rt.term_font.(0) := "-*-terminus-bold-r-*-20-*";
 Rt.term_font.(1) := "-*-terminus-bold-r-*-20-*";
