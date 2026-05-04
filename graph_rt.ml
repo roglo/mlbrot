@@ -1123,8 +1123,36 @@ Rt.term_font.(2) := "-*-terminus-medium-o-*-20-*";
 Rt.term_font.(3) := "-*-terminus-bold-r-*-20-*";
 *)
 
-value action_popup name wid _ = ();
+value action_popup name =
+  let doit wid xll yll = do {
+    let xd = xdata_of_widget wid in
+    let pwid = widget_named xd name in
+    rt_move_widget pwid xll yll;
+    rt_map_widget pwid
+  }
+  in
+  fun wid ->
+    fun
+    [ ButtonEvPress xll yll _ -> do {
+(*
+        let xd = xdata_of_widget wid in
+        rt_map_widget (rt_widget_named xd "NoErr");
+*)
+        doit wid xll yll
+      }
+    | ButtonEvEnter xll yll -> doit wid xll yll
+    | _ -> () ]
+;
+
+value action_button a wid =
+  fun
+  [ ButtonEvRelease _ _ _ -> a wid
+  | ButtonEvShortcut -> a wid
+  | _ -> () ]
+;
+
 value action_no_pack wid _ = ();
+value action_no_line wid _ = ();
 
 value x_init init_pos init_wid init_hei c_pal_def c_pal = do {
   let xd = rt_initialize "" in
@@ -1137,7 +1165,7 @@ value x_init init_pos init_wid init_hei c_pal_def c_pal = do {
     [ Some (x, y) → UserPosition x y
     | None → AutoPosition ]
   in
-  let wid =
+  let gen_wid =
     let name = Filename.basename Sys.argv.(0) in
     rt_create_widget xd name name init_pos
       (Some (fun _ → rt_stop_main_loop xa))
@@ -1145,14 +1173,30 @@ value x_init init_pos init_wid init_hei c_pal_def c_pal = do {
          (Vertical,
           [pack_desc []
              (Horizontal,
-              [button_desc [] ("Glop", None) (action_popup "pouet");
-               button_desc [] ("Tagada", None) (action_popup "tagada")])
+              [button_desc [] (I18n.transl "Application", None)
+		 (action_popup "Application popup");
+               button_desc [] (I18n.transl "Display", None)
+		 (action_popup "Display")])
              action_no_pack;
            raw_desc [FillerAtt; NameAtt "raw"]
              (init_wid, init_hei, 0,
               [SelExposure; SelKeyPress; SelStructureNotify; SelButtonPress])
              action_mandel])
          action_no_pack)
+  in
+  let raw_wid = widget_named xd "raw" in
+  let _ =
+    rt_create_popup_widget xd
+      (pack_desc [NameAtt "Application popup"]
+         (Vertical,
+          [button_desc [] ("Julia", None)
+             (action_button (fun _ -> ()));
+           line_desc [] () action_no_line;
+           button_desc [] ("en", None)
+            (action_button (fun _ -> ()));
+           button_desc [] ("fr", None)
+            (action_button (fun _ -> ()))])
+          action_no_pack)
   in
   let scr_w = screen_width xd in
   let scr_h = screen_height xd in
@@ -1173,9 +1217,8 @@ value x_init init_pos init_wid init_hei c_pal_def c_pal = do {
   rt_fill_rectangle (PixmapDr pixmap) (0, 0, w, h);
   let font = rt_load_query_font xd "-*-*-bold-*-*-*-13-*-*-*-*-*-iso8859-*" in
   rt_select_font font;
-  let raw_wid = widget_named xd "raw" in
   let xinfo =
-    {xargs = xa; gen_widget = wid; raw_widget = raw_wid; pixmap = pixmap;
+    {xargs = xa; gen_widget = gen_wid; raw_widget = raw_wid; pixmap = pixmap;
      font = font; c_red = c_red; c_green = c_green; c_blue = c_blue;
      c_gray = c_gray; c_black = c_black; c_white = c_white; last_col = c_red;
      cursor_busy = rt_create_font_mouse xd xC_watch;
