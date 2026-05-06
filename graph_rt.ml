@@ -472,6 +472,11 @@ value julia_action wid =
   | None → None ]
 ;
 
+value change_lang lang wid = do {
+  I18n.clear_lexicon ();
+  I18n.lang.val := lang;
+};
+
 value unmap_popups xd = do {
   rt_unmap_widget (widget_named xd "Application popup");
   rt_unmap_widget (widget_named xd "Display popup");
@@ -1218,9 +1223,9 @@ value x_init init_pos init_wid init_hei c_pal_def c_pal = do {
 		   ()));
            line_desc [] () action_no_line;
            button_desc [] ("en", None)
-             (action_button (fun _ -> ()));
+             (action_button (change_lang "en"));
            button_desc [] ("fr", None)
-             (action_button (fun _ -> ()))])
+             (action_button (change_lang "fr"))])
           action_no_pack)
   in
   let _ =
